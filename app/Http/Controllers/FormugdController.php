@@ -12,6 +12,7 @@ use App\Enums\Gender;
 use App\Models\AntrianUgd;
 use App\Models\Asuransi;
 use App\Models\Bbl;
+use App\Models\FormUgd;
 use App\Models\Pasienb;
 use App\Models\Pekerjaan;
 use App\Models\Penanggungjawab;
@@ -24,7 +25,7 @@ use App\Services\Temp;
 use Illuminate\Validation\Rule;
 
 
-class UgdController extends Controller
+class FormugdController extends Controller
 {
     use Helper;
 
@@ -38,7 +39,7 @@ class UgdController extends Controller
     public function index(Request $request)
     {
         $data = $this->temp->ugdIndex($request->bearerToken(), $request->all());
-        return $this->responseFormatterWithMeta($this->httpCode['StatusOK'], $this->httpMessage['StatusOK'], Ugd::orderBy('created_at', 'desc')->cursorPaginate($request->input('per_page', 15)));
+        return $this->responseFormatterWithMeta($this->httpCode['StatusOK'], $this->httpMessage['StatusOK'], FormUgd::orderBy('created_at', 'desc')->cursorPaginate($request->input('per_page', 15)));
 
         $ugd = [];
         
@@ -89,29 +90,20 @@ class UgdController extends Controller
     public function store(Request $request)
     {
         $this->validate($request, [
-            'pas_id' => 'required|exists:pasien,id',
-            'pas_td_id' => 'required|exists:pasientd,id',
-            'pen_jaw_id' => 'required|exists:penanggungjawab,id',
-            'peng_id' => 'required|exists:pengantar,id',
-            'bayi_id' => 'required|exists:bbl,id',
-            'cara_bayar' => 'required|max:255|string', 
-            'asuransi_id' => 'required|exists:asuransi,id',
-            'persetujuan_umum' => 'required|max:255|string',
-            'persetujuan_pasien' => 'required|max:255|string',
-            'membuat_pernyataan' => 'required|max:255|string',
             'triase' => 'required|exists:triase,id',
-            'anamnesis' => 'required|max:255|string',
-            'asesmen_awal' => 'required|max:255|string',
-            'screnning' => 'required|max:255|string',
-            'psikologis' => 'required|max:255|string',
-            'riwayat_obat' => 'required|max:255|string',
-            'pemulangan_pasien' => 'required|max:255|string',
-            'rencana_rawat' => 'required|max:255|string',
-            'persetujuan_pasien' => 'required|max:255|string',
+            'peng_id' => 'required|exists:pengantar,id',
+            'anamnesis' => 'required|exists:anamneisis,id',
+            'asesmen_awal' => 'required|exists:assesmenawal,id',
+            'screnning' => 'required|exists:sreenning,id',
+            'pses' => 'required|exists:pses,id',
+            'riw_peng_obat' => 'required|exists:riwayatobat,id', 
+            'rencana_pemulangan' => 'required|exists:pemulangan,id',
+            'rencana_rawat_inap' => 'required|max:255|string',
             'instruksi_medis' => 'required|max:255|string',
-            'pemeriksaan_penunjang' => 'required|max:255|string',
-            'persetujuan_tindakan' => 'required|max:255|string',
-            'terapi' => 'required|max:255|string',
+            'pemeriksaan_penunjang' => 'required|exists:pemeriksaaanpenunjang,id',
+            'diangnosis' => 'required|exists:diagnosis,id',
+            'persetujuan_tindakan' => 'required|exists:persetujuantindakan,id',
+            'terapi' => 'required|exists:terapi,id',
             'user_id' => 'required|integer',
         ]);
         $asuransi = Asuransi::where('id', $request->asuransi)->first();
@@ -135,28 +127,19 @@ class UgdController extends Controller
         //     'no_rm' => $request->no_rm
         // ];
 
-        $ugd = Ugd::create([
-            'pas_id' => $request->pas_umum_id,
-            'pas_td_id' => $request->pas_td_id,
-            'pen_jaw_id' => $request->pen_jaw_id,
-            'peng_id' => $request->peng_id,
-            'bayi_id' => $request->bayi_id,
-            'cara_bayar' => $request->cara_bayar,
-            'asuransi_id' => $request->asuransi_id,
-            'persetujuan_umum' => $request->persetujuan_umum,
-            'persetujuan_pasien' => $request->persetujuan_pasien,
-            'membuat_pernyataan' => $request->membuat_pernyataan,
+        $ugd = FormUgd::create([
             'triase' => $request->triase,
+            'peng_id' => $request->peng_id,
             'anamnesis' => $request->anamnesia,
             'asesmen_awal' => $request->asesmen_awal,
             'screnning' => $request->screnning,
-            'psikologis' => $request->psikologis,
-            'riwayat_obat' => $request->riwayat_obat,
-            'pemulangan_pasien' => $request->pemulangan_pasien,
-            'rencana_rawat' => $request->rencana_rawat,
-            'persetujuan_pasien' => $request->persetujuan_pasien,
+            'pses' => $request->pses,
+            'riw_peng_obat' => $request->riw_peng_obat,
+            'rencana_pemulangan' => $request->rencana_pemulangan,
+            'rencana_rawat_inap' => $request->rencana_rawat_inap,
             'instruksi_medis' => $request->instruksi_medis,
             'pemeriksaan_penunjang' => $request->pemeriksaan_penunjang,
+            'diangnosis' => $request->diangnosis,
             'persetujuan_tindakan' => $request->persetujuan_tindakan,
             'terapi' => $request->terapi,
             'user_id' => $request->user_id,
@@ -225,29 +208,20 @@ class UgdController extends Controller
     {
         $ugd = $this->getData($request);
         $this->validate($request, [
-            'pas_id' => 'required|exists:pasien,id',
-            'pas_td_id' => 'required|exists:pasientd,id',
-            'pen_jaw_id' => 'required|exists:penanggungjawab,id',
-            'peng_id' => 'required|exists:pengantar,id',
-            'bayi_id' => 'required|exists:bbl,id',
-            'cara_bayar' => 'required|max:255|string', 
-            'asuransi_id' => 'required|exists:asuransi,id',
-            'persetujuan_umum' => 'required|max:255|string',
-            'persetujuan_pasien' => 'required|max:255|string',
-            'membuat_pernyataan' => 'required|max:255|string',
             'triase' => 'required|exists:triase,id',
-            'anamnesis' => 'required|max:255|string',
-            'asesmen_awal' => 'required|max:255|string',
-            'screnning' => 'required|max:255|string',
-            'psikologis' => 'required|max:255|string',
-            'riwayat_obat' => 'required|max:255|string',
-            'pemulangan_pasien' => 'required|max:255|string',
-            'rencana_rawat' => 'required|max:255|string',
-            'persetujuan_pasien' => 'required|max:255|string',
+            'peng_id' => 'required|exists:pengantar,id',
+            'anamnesis' => 'required|exists:anamneisis,id',
+            'asesmen_awal' => 'required|exists:assesmenawal,id',
+            'screnning' => 'required|exists:sreenning,id',
+            'pses' => 'required|exists:pses,id',
+            'riw_peng_obat' => 'required|exists:riwayatobat,id', 
+            'rencana_pemulangan' => 'required|exists:pemulangan,id',
+            'rencana_rawat_inap' => 'required|max:255|string',
             'instruksi_medis' => 'required|max:255|string',
-            'pemeriksaan_penunjang' => 'required|max:255|string',
-            'persetujuan_tindakan' => 'required|max:255|string',
-            'terapi' => 'required|max:255|string',
+            'pemeriksaan_penunjang' => 'required|exists:pemeriksaaanpenunjang,id',
+            'diangnosis' => 'required|exists:diagnosis,id',
+            'persetujuan_tindakan' => 'required|exists:persetujuantindakan,id',
+            'terapi' => 'required|exists:terapi,id',
             'user_id' => 'required|integer',
         ]);
 
@@ -256,27 +230,20 @@ class UgdController extends Controller
         $lahir = Carbon::parse($request->tanggal_lahir);
         $umur = Carbon::now()->diffInYears($lahir);
 
-        $ugd->pas_id = $request->pas_id;
-        $ugd->pas_td_id = $request->pas_td_id;
-        $ugd->pen_jaw_id = $request->pen_jaw_id;
-        $ugd->peng_id = $request->peng_id;
-        $ugd->bayi_id = $request->bayi_id;
-        $ugd->cara_bayar = $request->cara_bayar;
-        $ugd->asuransi_id = $request->asuransi_id;
-        $ugd->persetujuan_umum = $request->persetujuan_umum;
-        $ugd->persetujuan_pasien = $request->persetujuan_pasien;
-        $ugd->membuat_pernyataan = $request->membuat_pernyataan;
         $ugd->triase = $request->triase;
+        $ugd->peng_id = $request->peng_id;
         $ugd->anamnesis = $request->anamnesis;
         $ugd->asesmen_awal = $request->asesmen_awal;
         $ugd->screnning = $request->screnning;
-        $ugd->psikologis = $request->psikologis;
-        $ugd->riwayat_obat = $request->riwayat_obat;
-        $ugd->pemulangan_pasien = $request->pemulangan_pasien;
+        $ugd->pses = $request->pses;
+        $ugd->riw_peng_obat = $request->riw_peng_obat;
+        $ugd->rencana_pemulangan = $request->rencana_pemulangan;
+        $ugd->rencana_rawat_inap = $request->rencana_rawat_inap;
+        $ugd->instruksi_medis = $request->instruksi_medis;
         $ugd->rencana_rawat = $request->rencana_rawat;
         $ugd->persetujuan_pasien = $request->persetujuan_pasien;
-        $ugd->instruksi_medis = $request->instruksi_medis;
         $ugd->pemeriksaan_penunjang = $request->pemeriksaan_penunjang;
+        $ugd->diangnosis = $request->diangnosis;
         $ugd->persetujuan_tindakan = $request->persetujuan_tindakan;
         $ugd->terapi = $request->terapi;
         $ugd->user_id = $request->user_id;
@@ -327,7 +294,7 @@ class UgdController extends Controller
             'id' => 'required|uuid',
         ]);
 
-        $ugd = Ugd::find($request->id);
+        $ugd = FormUgd::find($request->id);
 
         if ($ugd == null) return null;
 
